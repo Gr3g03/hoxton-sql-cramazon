@@ -68,17 +68,17 @@ const orders = [
 
 
 async function createStuff() {
-    for (const user of users) {
-        await prisma.user.create({ data: user })
-    }
+    // for (const user of users) {
+    //     await prisma.user.create({ data: user })
+    // }
 
-    for (const item of items) {
-        await prisma.item.create({ data: item })
-    }
+    // for (const item of items) {
+    //     await prisma.item.create({ data: item })
+    // }
 
-    for (const order of orders) {
-        await prisma.order.create({ data: order })
-    }
+    // for (const order of orders) {
+    //     await prisma.order.create({ data: order })
+    // }
 }
 
 createStuff()
