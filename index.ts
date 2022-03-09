@@ -9,35 +9,121 @@ app.use(cors())
 app.use(express.json())
 
 
+
 app.get('/users/:id', async (req, res) => {
-    const idParam = Number(req.params.id)
+    const paramId = Number(req.params.id)
+    try {
 
-    const users = await prisma.user.findFirst(
-        { where: { id: idParam } }
-    )
+        const users = await prisma.user.findFirst({
+            where: { id: paramId },
+            select: {
+                id: true,
+                email: true,
+                name: true,
+                items: {
+                    include: { item: true }
+                }
+            }
+        })
 
-    res.send(users)
+        res.send(users)
+
+    }
+
+    catch (error) {
+        //@ts-ignore
+        res.status(400).send(`<pre>${error.message}</pre>`)
+    }
+
 })
 
-app.get('/users/', async (req, res) => {
 
-    const users = await prisma.user.findMany()
+app.get('/users', async (req, res) => {
 
-    res.send(users)
+    try {
+
+        const items = await prisma.user.findMany({
+            select: {
+                id: true,
+                email: true,
+                name: true,
+                items: {
+                    include: { item: true }
+                }
+            }
+        })
+
+        res.send(items)
+
+    }
+
+    catch (error) {
+        //@ts-ignore
+        res.status(400).send(`<pre>${error.message}</pre>`)
+    }
+
 })
+
 
 app.get('/items', async (req, res) => {
 
-    const items = await prisma.item.findMany()
+    try {
 
-    res.send(items)
+        const users = await prisma.item.findMany({
+            select: {
+                id: true,
+                image: true,
+                title: true,
+                users: {
+                    include: { user: true }
+                }
+            }
+        })
+
+        res.send(users)
+
+    }
+
+    catch (error) {
+        //@ts-ignore
+        res.status(400).send(`<pre>${error.message}</pre>`)
+    }
+
 })
 
-app.get('/orders', async (req, res) => {
+app.delete('/users/:id', async (req, res) => {
 
-    const orders = await prisma.order.findMany({ include: { user: true, item: true } })
+    const idParam = req.params.id
 
-    res.send(orders)
+    try {
+
+        const user = await prisma.user.findFirst({
+            where: {
+                id: Number(idParam)
+            }
+        })
+
+        if (user) {
+
+            await prisma.user.delete({
+                where: { id: Number(idParam) }
+            })
+
+            res.send({ message: 'user deleted.' })
+
+        }
+
+        else {
+            res.status(404).send({ error: 'user not found.' })
+        }
+
+    }
+
+    catch (error) {
+        //@ts-ignore
+        res.status(400).send(`<prev>${error.message}</prev>`)
+    }
+
 })
 
 app.listen(4000, () => {
