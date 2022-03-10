@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import cors from 'cors'
+import { create } from "domain";
 import express from 'express'
 
 const prisma = new PrismaClient({ log: ['query', 'error', 'warn', 'info'] })
@@ -125,6 +126,47 @@ app.delete('/users/:id', async (req, res) => {
     }
 
 })
+
+app.post('/users', async (req, res) => {
+
+    const { email, name } = req.body
+
+    const newUser = {
+        email: email,
+        name: name
+    }
+
+    try {
+
+        const userCheck = await prisma.user.findFirst({ where: { email: newUser.email } })
+
+        if (userCheck) {
+            res.status(404).send({ error: 'User has an already registered email try different email.' })
+        }
+
+        else {
+
+            try {
+                const createdUser = await prisma.user.create({ data: newUser })
+                res.send(createdUser)
+            }
+
+            catch (error) {
+                //@ts-ignore
+                res.status(400).send(`<prev>${error.message}</prev>`)
+            }
+
+        }
+
+    }
+
+    catch (error) {
+        //@ts-ignore
+        res.status(400).send(`<prev>${error.message}</prev>`)
+    }
+
+})
+
 
 app.listen(4000, () => {
     console.log('server up: http://localhost:4000')
