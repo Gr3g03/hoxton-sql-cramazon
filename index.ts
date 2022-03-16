@@ -1,173 +1,65 @@
-import { PrismaClient } from "@prisma/client";
-import cors from 'cors'
-import { create } from "domain";
+import { PrismaClient } from '@prisma/client'
 import express from 'express'
+import cors from 'cors'
 
-const prisma = new PrismaClient({ log: ['query', 'error', 'warn', 'info'] })
+const prisma = new PrismaClient()
 
 const app = express()
 app.use(cors())
 app.use(express.json())
+const PORT = 4000
 
+app.get('/users/:email', async (req, res) => {
+    const email = req.params.email
 
-
-app.get('/users/:id', async (req, res) => {
-    const paramId = Number(req.params.id)
     try {
-
-        const users = await prisma.user.findFirst({
-            where: { id: paramId },
-            select: {
-                id: true,
-                email: true,
-                name: true,
-                items: {
+        const user = await prisma.user.findUnique({
+            where: { email: email },
+            include: {
+                orders: {
                     include: { item: true }
                 }
-            }
-        })
-
-        res.send(users)
-
-    }
-
-    catch (error) {
-        //@ts-ignore
-        res.status(400).send(`<pre>${error.message}</pre>`)
-    }
-
-})
-
-
-app.get('/users', async (req, res) => {
-
-    try {
-
-        const items = await prisma.user.findMany({
-            select: {
-                id: true,
-                email: true,
-                name: true,
-                items: {
-                    include: { item: true }
-                }
-            }
-        })
-
-        res.send(items)
-
-    }
-
-    catch (error) {
-        //@ts-ignore
-        res.status(400).send(`<pre>${error.message}</pre>`)
-    }
-
-})
-
-
-app.get('/items', async (req, res) => {
-
-    try {
-
-        const users = await prisma.item.findMany({
-            select: {
-                id: true,
-                image: true,
-                title: true,
-                users: {
-                    include: { user: true }
-                }
-            }
-        })
-
-        res.send(users)
-
-    }
-
-    catch (error) {
-        //@ts-ignore
-        res.status(400).send(`<pre>${error.message}</pre>`)
-    }
-
-})
-
-app.delete('/users/:id', async (req, res) => {
-
-    const idParam = req.params.id
-
-    try {
-
-        const user = await prisma.user.findFirst({
-            where: {
-                id: Number(idParam)
             }
         })
 
         if (user) {
-
-            await prisma.user.delete({
-                where: { id: Number(idParam) }
-            })
-
-            res.send({ message: 'user deleted.' })
-
+            res.send(user)
+        } else {
+            res.status(404).send({ error: 'User not found.' })
         }
-
-        else {
-            res.status(404).send({ error: 'user not found.' })
-        }
-
+    } catch (err) {
+        // @ts-ignore
+        res.status(400).send({ error: err.message })
     }
-
-    catch (error) {
-        //@ts-ignore
-        res.status(400).send(`<prev>${error.message}</prev>`)
-    }
-
 })
 
-app.post('/users', async (req, res) => {
-
-    const { email, name } = req.body
-
-    const newUser = {
-        email: email,
-        name: name
-    }
+app.delete('/orders/:id', async (req, res) => {
+    const id = Number(req.params.id)
 
     try {
+        const order = await prisma.order.findUnique({ where: { id } })
 
-        const userCheck = await prisma.user.findFirst({ where: { email: newUser.email } })
-
-        if (userCheck) {
-            res.status(404).send({ error: 'User has an already registered email try different email.' })
+        if (order) {
+            await prisma.order.delete({ where: { id } })
+            const user = await prisma.user.findUnique({
+                where: { id: order.userId },
+                include: { orders: { include: { item: true } } }
+            })
+            res.send(user)
+        } else {
+            res.status(404).send({ error: 'Order not found.' })
         }
-
-        else {
-
-            try {
-                const createdUser = await prisma.user.create({ data: newUser })
-                res.send(createdUser)
-            }
-
-            catch (error) {
-                //@ts-ignore
-                res.status(400).send(`<prev>${error.message}</prev>`)
-            }
-
-        }
-
+    } catch (err) {
+        // @ts-ignore
+        res.status(400).send({ err: err.message })
     }
-
-    catch (error) {
-        //@ts-ignore
-        res.status(400).send(`<prev>${error.message}</prev>`)
-    }
-
 })
 
+app.patch('/orders/:id', async (req, res) => {
+    // run some code to patch order
+    // reply to user
+})
 
-app.listen(4000, () => {
-    console.log('server up: http://localhost:4000')
+app.listen(PORT, () => {
+    console.log(`Server up: http://localhost:${PORT}`)
 })

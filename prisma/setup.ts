@@ -1,84 +1,75 @@
-import { Prisma, PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient } from '@prisma/client'
 
-const prisma = new PrismaClient({ log: ['query', 'error', 'warn', 'info'] })
-
-
+const prisma = new PrismaClient()
 
 const items: Prisma.ItemCreateInput[] = [
     {
-        title: 't-shirt',
-        image: 'Image.jpg'
+        image:
+            'https://images.pexels.com/photos/251454/pexels-photo-251454.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260',
+        title: 'Socks',
+        price: 1.99
     },
     {
-        title: 'shoes',
-        image: 'Image.jpg'
+        image: 'https://gambleandgunn.com/wp-content/uploads/2018/09/DSC_4460.png',
+        title: 'Flat Cap',
+        price: 5.99
     },
     {
-        title: 'v-neck',
-        image: 'Image.jpg'
-    },
-    {
-        title: 'watch',
-        image: 'Image.jpg'
+        image:
+            'https://upload.wikimedia.org/wikipedia/commons/a/af/Glasses_black.jpg',
+        title: 'Glasses',
+        price: 3.99
     }
 ]
-
 
 const users: Prisma.UserCreateInput[] = [
     {
-        name: 'Grigori',
-        email: 'grigori@email.com'
-
-    },
-    {
+        email: 'nicolas@email.com',
         name: 'Nicolas',
-        email: 'nicolas@email.com'
+        orders: {
+            create: [
+                { item: { connect: { title: 'Socks' } }, quantity: 100 },
+                { item: { connect: { title: 'Flat Cap' } }, quantity: 7 },
+                { item: { connect: { title: 'Glasses' } }, quantity: 2 }
+            ]
+        }
     },
     {
-        name: 'ed',
-        email: 'ed@email.com'
+        email: 'ed@email.com',
+        name: 'Ed',
+        orders: {
+            create: [
+                {
+                    item: {
+                        connectOrCreate: {
+                            where: { title: 'Cat Ears' },
+                            create: {
+                                image:
+                                    'https://images.squarespace-cdn.com/content/v1/55f04163e4b0b418231cabce/1559565440860-TO562ZISIAFIJGCFUI8K/Headband_Leopard_1.jpg?format=1000w',
+                                title: 'Cat Ears',
+                                price: 2.99
+                            }
+                        }
+                    },
+                    quantity: 69
+                }
+            ]
+        }
     },
     {
-        name: 'Rinor',
-        email: 'rinor@email.com'
-    },
-    {
-        name: 'Geri',
-        email: 'geri@email.com'
+        email: 'artiola@email.com',
+        name: 'Artiola'
     }
 ]
-
-const orders = [
-    {
-        userId: 2,
-        itemId: 3,
-        quantity: 3
-    },
-    {
-        userId: 1,
-        itemId: 3,
-        quantity: 1
-    },
-    {
-        userId: 3,
-        itemId: 1,
-        quantity: 4
-    }
-]
-
 
 async function createStuff() {
-    // for (const user of users) {
-    //     await prisma.user.create({ data: user })
-    // }
+    for (const item of items) {
+        await prisma.item.create({ data: item })
+    }
 
-    // for (const item of items) {
-    //     await prisma.item.create({ data: item })
-    // }
-
-    // for (const order of orders) {
-    //     await prisma.order.create({ data: order })
-    // }
+    for (const user of users) {
+        await prisma.user.create({ data: user })
+    }
 }
 
 createStuff()
