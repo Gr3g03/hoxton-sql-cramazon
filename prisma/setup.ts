@@ -26,6 +26,7 @@ const users: Prisma.UserCreateInput[] = [
     {
         email: 'nicolas@email.com',
         name: 'Nicolas',
+        password: 'abcd',
         orders: {
             create: [
                 { item: { connect: { title: 'Socks' } }, quantity: 100 },
@@ -37,6 +38,7 @@ const users: Prisma.UserCreateInput[] = [
     {
         email: 'ed@email.com',
         name: 'Ed',
+        password: 'abcd',
         orders: {
             create: [
                 {
@@ -58,7 +60,8 @@ const users: Prisma.UserCreateInput[] = [
     },
     {
         email: 'artiola@email.com',
-        name: 'Artiola'
+        name: 'Artiola',
+        password: 'abcd'
     }
 ]
 
