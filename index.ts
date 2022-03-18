@@ -7,7 +7,6 @@ import jwt from 'jsonwebtoken'
 
 
 
-// We can then access any variable with:
 process.env.MY_VARIABLE_NAME
 
 const prisma = new PrismaClient({ log: ['query', 'info', 'warn', 'error'] })
@@ -28,7 +27,7 @@ async function getUserFromToken(token: string) {
     const user = await prisma.user.findUnique({
         //@ts-ignore
         where: { id: decodedData.id },
-        include: { orders: true }
+        include: { orders: { include: { item: true } } }
     })
     return user
 }
@@ -40,7 +39,7 @@ app.post('/signup', async (req, res) => {
         const hash = bcrypt.hashSync(password, 8)
         const user = await prisma.user.create({
             data: { email: email, password: hash, name },
-            include: { orders: true }
+            include: { orders: { include: { item: true } } }
         })
         res.send({ user, token: createToken(user.id) })
     } catch (error) {
@@ -56,7 +55,7 @@ app.post('/signin', async (req, res) => {
     try {
         const user = await prisma.user.findUnique({
             where: { email: email },
-            include: { orders: true }
+            include: { orders: { include: { item: true } } }
         })
         // @ts-ignore
         const passwordMatches = bcrypt.compareSync(password, user.password)
@@ -64,7 +63,7 @@ app.post('/signin', async (req, res) => {
         if (user && passwordMatches) {
             res.send({ user, token: createToken(user.id) })
         } else {
-            throw Error('BOOM!')
+            throw Error('Error')
         }
     } catch (err) {
         res.status(400).send({ error: 'User/password invalid.' })
@@ -72,8 +71,9 @@ app.post('/signin', async (req, res) => {
 })
 
 
+
 app.get('/validate', async (req, res) => {
-    const token = req.headers.authorization
+    const token = req.headers.authorization || ''
 
     try {
         // @ts-ignore
